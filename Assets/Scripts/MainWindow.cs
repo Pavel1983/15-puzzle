@@ -28,6 +28,8 @@ namespace Puzzle15.UI
             _gameField = new GameField(cols, rows, type, _tilesMapping);
             _gameFieldView = Instantiate(_gameFieldViewPrefab);
             _gameFieldView.Setup(_gameField, _tilesViewsDescription.GetView(type));
+            
+            _gameField.Shuffle();
         }
 
         #endregion
