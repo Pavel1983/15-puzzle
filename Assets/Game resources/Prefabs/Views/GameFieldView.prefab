@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5eb369f7f349405dbce5b44cf6626589, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _tileMoveTime: 0.3
+  _tileMoveTime: 0.1
   _shuffleTime: 2
   _padding: 2
   _fieldBackground: {fileID: 7410496992624464303}

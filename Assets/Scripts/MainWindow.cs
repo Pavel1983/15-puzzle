@@ -30,6 +30,12 @@ namespace Puzzle15.UI
             _gameFieldView.Setup(_gameField, _tilesViewsDescription.GetView(type));
             
             _gameField.Shuffle();
+            _gameField.EventPuzzleCompleted += OnPuzzleCompleted;
+        }
+
+        private void OnPuzzleCompleted()
+        {
+            Debug.Log("Level completed");
         }
 
         #endregion

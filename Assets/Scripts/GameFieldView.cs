@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.EventSystems;
 
 namespace Puzzle15.UI
 {
@@ -20,6 +21,7 @@ namespace Puzzle15.UI
 		private Vector2 _firstTilePos;
 		private Vector2 _tileWorldSize = Vector2.zero;
 		private int _emptyTileIndex;
+		private Camera _mainCamera;
 
 		public void Setup(GameField model, TileView tilePrefab)
 		{
@@ -30,7 +32,11 @@ namespace Puzzle15.UI
 			_emptyTileIndex = _model.Cols * _model.Rows - 1;
 
 			_paddingSize = _padding * _fieldBackground.bounds.size.x / 100.0f;
+
+			_mainCamera = Camera.main;
+			
 			CreateFieldView(tilePrefab);
+			CreateInputArea();
 
 		}
 
@@ -65,6 +71,44 @@ namespace Puzzle15.UI
 
 				_tileObjects[i] = tileViewObject;
 			}
+		}
+
+		private void CreateInputArea()
+		{
+			var fieldWorldSize = _fieldBackground.bounds.size;
+			
+			var inputAreaObject = new GameObject();
+			inputAreaObject.transform.SetParent(transform);
+			inputAreaObject.transform.localPosition = Vector3.zero;
+			
+			var collider = inputAreaObject.AddComponent<BoxCollider2D>();
+			collider.size = fieldWorldSize;
+
+			var touchDetector = inputAreaObject.AddComponent<TouchDetector>();
+			touchDetector.EventClick += OnInputAreaTouched;
+		}
+
+		private void OnInputAreaTouched(PointerEventData eventData)
+		{
+			Debug.Log($"touched.pos:{eventData.position}");
+			
+			var clickPos = eventData.position;
+			var fieldWorldSize = _fieldBackground.bounds.size;
+			Vector2 inputAreaUpperLeftCornerPos =_mainCamera.WorldToScreenPoint(transform.position - 
+			                                                                    new Vector3(fieldWorldSize.x, -fieldWorldSize.y) * 0.5f);
+			var localScreenPos = clickPos - inputAreaUpperLeftCornerPos;
+			
+			var fieldScreenSize = _mainCamera.WorldToScreenPoint(fieldWorldSize) - 
+			                      new Vector3(Screen.width * 0.5f, Screen.height * 0.5f);
+			
+			float cellSize = fieldScreenSize.x / _model.Cols;
+			Vector2Int logicalPos = new Vector2Int(
+				(int)(localScreenPos.x / cellSize), 
+				-(int)(localScreenPos.y / cellSize));
+			int cellIndex = logicalPos.y * _model.Cols + logicalPos.x;
+			
+			Debug.Log($"logicalPos:{logicalPos}");
+			_model.MoveTile(logicalPos);
 		}
 
 		private Vector3 GetTileWorldPosByIndex(int index)

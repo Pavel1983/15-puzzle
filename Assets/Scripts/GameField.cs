@@ -11,17 +11,19 @@ namespace Puzzle15
     {
         public event Action<int, int> EventTileMove; // from, to
         public event Action<List<int>> EventShuffle;
+        public event Action EventPuzzleCompleted;
         
         
         // locals
         private TileData[] _tiles;
+        private TileData[] _tilesOrdered;
+        
         private int _emptyTileIndex;
         private int _tilesCount;
-
         private int _cols;
         private int _rows;
         private int _shuffleIterations;
-
+        
         // properties
         public int TilesCount => _tilesCount;
         public int Cols => _cols;
@@ -29,6 +31,7 @@ namespace Puzzle15
         
         public GameField(int cols, int rows, TileType tileType, ITilesMapping tilesMapping)
         {
+            Assert.IsTrue(tilesMapping != null);
             Assert.IsTrue(cols > 0);
             Assert.IsTrue(rows > 0);
 
@@ -51,6 +54,8 @@ namespace Puzzle15
                 default:
                     throw new ArgumentOutOfRangeException(nameof(tileType), tileType, null);
             }
+            _tilesOrdered = new TileData[_tiles.Length];
+            _tiles.CopyTo(_tilesOrdered, 0);
 
             _emptyTileIndex = _tilesCount - 1;
             
@@ -64,19 +69,15 @@ namespace Puzzle15
 
         public void Shuffle()
         {
-            Debug.Log("Shuffle");
             List<int> shuffleListPos = new List<int>();
             for (int i = 0; i < _shuffleIterations; ++i)
             {
-                Debug.Log($"emptyTileIndex = {_emptyTileIndex} before");
                 int newTileIndex = GetRandomNeighbourToEmptyTile();
                 int x = newTileIndex % _cols;
                 int y = newTileIndex / _cols;
                 
-                MoveTile(new Vector2Int(x, y));
-                Debug.Log($"emptyTileIndex = {_emptyTileIndex} after");
+                TryMoveTile(new Vector2Int(x, y));
 
-                
                 shuffleListPos.Add(newTileIndex);
             }
             
@@ -85,11 +86,25 @@ namespace Puzzle15
 
         public void MoveTile(Vector2Int pos)
         {
+            int movingTileIndex = pos.y * _cols + pos.x;
+            int toPos = _emptyTileIndex;
             if (TryMoveTile(pos))
             {
-                int movingTileIndex = pos.y * _cols + pos.x;
-                EventTileMove?.Invoke(movingTileIndex, _emptyTileIndex);
+                EventTileMove?.Invoke(movingTileIndex, toPos);
+                if (IsPuzzleCompleted())
+                    EventPuzzleCompleted?.Invoke();
             }
+        }
+
+        private bool IsPuzzleCompleted()
+        {
+            for (int i = 0; i < _tilesOrdered.Length; ++i)
+            {
+                if (_tiles[i] != _tilesOrdered[i])
+                    return false;
+            }
+
+            return true;
         }
 
         private int GetRandomNeighbourToEmptyTile()
