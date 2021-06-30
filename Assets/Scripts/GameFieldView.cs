@@ -30,16 +30,13 @@ namespace Puzzle15.UI
 			_model.EventShuffle += OnFieldShuffle;
 
 			_emptyTileIndex = _model.Cols * _model.Rows - 1;
-
 			_paddingSize = _padding * _fieldBackground.bounds.size.x / 100.0f;
-
 			_mainCamera = Camera.main;
 			
 			CreateFieldView(tilePrefab);
 			CreateInputArea();
-
 		}
-
+		
 		private void CreateFieldView(TileView tilePrefab)
 		{
 			var tilesData = _model.GetTilesData();
@@ -61,15 +58,20 @@ namespace Puzzle15.UI
 			                       new Vector3(_tileWorldSize.x, -_tileWorldSize.y, 0) * 0.5f + 
 			                       new Vector3(_paddingSize, -_paddingSize, 0);
 			
-			for (int i = 0; i < tilesData.Length - 1; ++i)
+			for (int i = 0; i < tilesData.Length; ++i)
 			{
-				var tileViewObject = Instantiate(tilePrefab, transform, false);
-				
-				tileViewObject.Setup(tilesData[i]);
-				tileViewObject.ScaleToSize(_tileWorldSize);
-				tileViewObject.transform.position = GetTileWorldPosByIndex(i);
+				if (tilesData[i] != null)
+				{
+					var tileViewObject = Instantiate(tilePrefab, transform, false);
 
-				_tileObjects[i] = tileViewObject;
+					tileViewObject.Setup(tilesData[i]);
+					tileViewObject.ScaleToSize(_tileWorldSize);
+					tileViewObject.transform.position = GetTileWorldPosByIndex(i);
+
+					_tileObjects[i] = tileViewObject;
+				}
+				else
+					_tileObjects[i] = null;
 			}
 		}
 
@@ -124,6 +126,7 @@ namespace Puzzle15.UI
 				0);
 		}
 
+		#region event handlers
 		private void OnTileMove(int fromPos, int toPos)
 		{
 			StartCoroutine(MoveTile(fromPos, toPos, _tileMoveTime, null));
@@ -133,6 +136,7 @@ namespace Puzzle15.UI
 		{
 			StartCoroutine(Shuffle(shuffleData));
 		}
+		#endregion
 
 		private IEnumerator Shuffle(List<int> shuffleData)
 		{

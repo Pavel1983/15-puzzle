@@ -8,6 +8,7 @@ namespace Puzzle15
 		
 	}
 
+	[Serializable]
 	public class NumberedTileData : TileData
 	{
 		private int _value;

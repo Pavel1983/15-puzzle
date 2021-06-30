@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Puzzle15.UI;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
@@ -9,11 +8,10 @@ namespace Puzzle15
 {
     public class GameField
     {
-        public event Action<int, int> EventTileMove; // from, to
+        public event Action<int, int> EventTileMove; // fromIndex, toIndex
         public event Action<List<int>> EventShuffle;
         public event Action EventPuzzleCompleted;
-        
-        
+
         // locals
         private TileData[] _tiles;
         private TileData[] _tilesOrdered;
@@ -29,42 +27,44 @@ namespace Puzzle15
         public int Cols => _cols;
         public int Rows => _rows;
         
-        public GameField(int cols, int rows, TileType tileType, ITilesMapping tilesMapping)
+        public GameField(int cols, int rows, TileData[] tiles, int[] customOrder = null)
         {
-            Assert.IsTrue(tilesMapping != null);
             Assert.IsTrue(cols > 0);
             Assert.IsTrue(rows > 0);
 
             _cols = cols;
             _rows = rows;
             _tilesCount = cols * rows;
-            _shuffleIterations = _tilesCount * 5;
+            _shuffleIterations = _tilesCount;
 
-            switch (tileType)
-            {
-                case TileType.Numbered:
-                    _tiles = CreateNumberedTiles(tilesMapping);
-                    break;
-                case TileType.Imaged:
-                    _tiles = CreateImagedTiles(tilesMapping);
-                    break;
-                case TileType.Unknown:
-                    Debug.LogError($"It seems like tileType is unknown. Check TileType");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(tileType), tileType, null);
-            }
+            _tiles = tiles;
             _tilesOrdered = new TileData[_tiles.Length];
             _tiles.CopyTo(_tilesOrdered, 0);
 
             _emptyTileIndex = _tilesCount - 1;
             
+            if (customOrder != null)
+                SetCustomOrder(customOrder);
+            
             Assert.IsTrue(_tiles != null);
+        }
+
+        private void SetCustomOrder(int[] tilesIndices)
+        {
+            for (int i = 0; i < tilesIndices.Length; ++i)
+            {
+                _tiles[i] = _tilesOrdered[tilesIndices[i]];
+            }
         }
 
         public TileData[] GetTilesData()
         {
             return _tiles;
+        }
+
+        public TileData[] GetOrderedTileData()
+        {
+            return _tilesOrdered;
         }
 
         public void Shuffle()
@@ -162,41 +162,7 @@ namespace Puzzle15
             return false;
         }
 
-        private TileData[] CreateNumberedTiles(ITilesMapping tilesMapping)
-        {
-            TileData[] tiles = null;
-            int[] orderedTileset = tilesMapping.OrderedTilesContent as int[];
-            ITilesFactory<int> tilesFactory = GameFactory.Instance.GetNumberedTileFactory();
-            if (orderedTileset != null)
-            {
-                tiles = new TileData[_tilesCount];
-                for (int i = 0; i < _tilesCount - 1; ++i)
-                {
-                    int tileContentValue = orderedTileset[i];
-                    tiles[i] = tilesFactory.Create(tileContentValue);
-                }
-            }
-
-            return tiles;
-        }
-
-        private TileData[] CreateImagedTiles(ITilesMapping tilesMapping)
-        {
-            TileData[] tiles = null;
-            Sprite[] orderedTileset = tilesMapping.OrderedTilesContent as Sprite[];
-            ITilesFactory<Sprite> imagedTilesFactory = GameFactory.Instance.GetImagedTileFactory();
-            if (orderedTileset != null)
-            {
-                tiles = new TileData[_tilesCount];
-                for (int i = 0; i < _tilesCount - 1; ++i)
-                {
-                    Sprite tileContentValue = orderedTileset[i];
-                    tiles[i] = imagedTilesFactory.Create(tileContentValue);
-                }
-            }
-
-            return tiles;
-        }
+        
 
         private void SwapTiles(ref int tile1, ref int tile2)
         {
