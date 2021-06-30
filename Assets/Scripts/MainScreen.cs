@@ -41,7 +41,8 @@ namespace Puzzle15.UI
 
         private void OnDestroy()
         {
-            SaveSession();
+            if (gameObject.activeSelf)
+                SaveSession();
         }
 
         #endregion

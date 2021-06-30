@@ -140,18 +140,18 @@ namespace Puzzle15.UI
 
 		private IEnumerator Shuffle(List<int> shuffleData)
 		{
-			Debug.Log(ListToString(shuffleData));
+			//Debug.Log(ListToString(shuffleData));
 			float tileMoveDuration = _shuffleTime / shuffleData.Count;
 			for (int i = 0; i < shuffleData.Count; ++i)
 			{
-				Debug.Log($"{_emptyTileIndex}->{shuffleData[i]}");
+				//Debug.Log($"{_emptyTileIndex}->{shuffleData[i]}");
 				yield return MoveTile(shuffleData[i], _emptyTileIndex, tileMoveDuration, null);
 
 				_emptyTileIndex = shuffleData[i];
 			}
 		}
 
-		private string ListToString(List<int> shuffleData)
+		public static string ListToString(List<int> shuffleData)
 		{
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < shuffleData.Count; ++i)

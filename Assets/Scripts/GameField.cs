@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Puzzle15.UI;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Random = UnityEngine.Random;
@@ -35,7 +37,7 @@ namespace Puzzle15
             _cols = cols;
             _rows = rows;
             _tilesCount = cols * rows;
-            _shuffleIterations = _tilesCount;
+            _shuffleIterations = _tilesCount * 4;
 
             _tiles = tiles;
             _tilesOrdered = new TileData[_tiles.Length];
@@ -72,11 +74,13 @@ namespace Puzzle15
         public void Shuffle()
         {
             List<int> shuffleListPos = new List<int>();
+            int prevIndex = -1;
             for (int i = 0; i < _shuffleIterations; ++i)
             {
-                int newTileIndex = GetRandomNeighbourToEmptyTile();
+                int newTileIndex = GetRandomNeighbourToEmptyTile(prevIndex);
                 int x = newTileIndex % _cols;
                 int y = newTileIndex / _cols;
+                prevIndex = _emptyTileIndex;
                 
                 TryMoveTile(new Vector2Int(x, y));
 
@@ -109,7 +113,7 @@ namespace Puzzle15
             return true;
         }
 
-        private int GetRandomNeighbourToEmptyTile()
+        private int GetRandomNeighbourToEmptyTile(int excludeIndex)
         {
             int x = _emptyTileIndex % _cols;
             int y = _emptyTileIndex / _cols;
@@ -135,6 +139,8 @@ namespace Puzzle15
                 choices.Add(_emptyTileIndex + _cols);
                 choices.Add(_emptyTileIndex - _cols);
             }
+            
+            choices.Remove(excludeIndex);
             
             return choices[Random.Range(0, choices.Count)];
         }
@@ -163,9 +169,7 @@ namespace Puzzle15
 
             return false;
         }
-
         
-
         private void SwapTiles(ref int tile1, ref int tile2)
         {
             var firstTile =_tiles[tile1];
