@@ -54,6 +54,8 @@ namespace Puzzle15
             for (int i = 0; i < tilesIndices.Length; ++i)
             {
                 _tiles[i] = _tilesOrdered[tilesIndices[i]];
+                if (_tiles[i] == null)
+                    _emptyTileIndex = i;
             }
         }
 

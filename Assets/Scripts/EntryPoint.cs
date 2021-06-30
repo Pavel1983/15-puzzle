@@ -6,7 +6,7 @@ namespace Puzzle15
 {
     public class EntryPoint
     {
-        [RuntimeInitializeOnLoadMethod]
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Init()
         {
             InitFactories();

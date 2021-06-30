@@ -1,3 +1,4 @@
+using Puzzle15.Constants;
 using PuzzleGame.UI;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,9 +19,17 @@ namespace Puzzle15.UI
             _newGameButton.onClick.RemoveListener(OnNewGameButton);
         }
 
+        public override void Show()
+        {
+            base.Show();
+            
+            var sessionData = new SessionData();
+            sessionData.Save();
+        }
+
         private void OnNewGameButton()
         {
-            ScreensSwitcher.Instance.Open("ChoicePopup", false);
+            ScreensSwitcher.Instance.Open(GameConstants.ScreenChoice, false);
         }
     }
 }

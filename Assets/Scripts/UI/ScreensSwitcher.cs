@@ -78,7 +78,11 @@ namespace PuzzleGame.UI
                 var screen = _cachedScreens.First(scr => scr.Id == screenId);
                 _cachedScreens.Remove(screen);
                 _screens.Push(screen);
-
+                
+                // todo: временный хак 
+                if (!hidePrevious)
+                    ((MonoBehaviour)screen).GetComponent<RectTransform>().SetAsLastSibling();
+                
                 screen.Show();
             }
             else
@@ -92,8 +96,13 @@ namespace PuzzleGame.UI
                 IScreen newScreen = newScreenObject.GetComponent<IScreen>();
                 if (newScreen != null)
                 {
-                    newScreen.Show();
                     _screens.Push(newScreen);
+                    
+                    // todo: временный хак 
+                    if (!hidePrevious)
+                        ((MonoBehaviour)newScreen).GetComponent<RectTransform>().SetAsLastSibling();
+                    
+                    newScreen.Show();
                 }
             }
             else
@@ -108,10 +117,11 @@ namespace PuzzleGame.UI
             {
                 var curScreen = _screens.Peek();
                 curScreen.Hide();
+
+                _cachedScreens.Add(curScreen);
                 
                 _screens.Pop();
                 _screens.Peek().Show();
-                _cachedScreens.Add(curScreen);
             }
         }
     }

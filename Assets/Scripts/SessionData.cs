@@ -1,4 +1,6 @@
 using System;
+using Puzzle15.Constants;
+using UnityEngine;
 
 namespace Puzzle15.UI
 {
@@ -7,7 +9,7 @@ namespace Puzzle15.UI
 	{
 		private static SessionData _null = new SessionData();
 		public static SessionData Null => _null;
-        
+		
 		public int Cols;
 		public int Rows;
 		public TileType Type;
@@ -16,5 +18,12 @@ namespace Puzzle15.UI
 		public string TilesProviderId;
 		// реальный порядок тайлов (индексы упорядоченного массива)
 		public int[] TilesIndices;
+
+		public void Save()
+		{
+			string json = JsonUtility.ToJson(this);
+			PlayerPrefs.SetString(GameConstants.PrefsLastSession, json);
+			PlayerPrefs.Save();
+		}
 	}
 }

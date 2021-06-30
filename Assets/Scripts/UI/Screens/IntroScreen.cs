@@ -21,6 +21,21 @@ namespace Puzzle15.UI
         }
         #endregion
 
+        public override void Show()
+        {
+            base.Show();
+            
+            string lastSessionJson = PlayerPrefs.GetString(GameConstants.PrefsLastSession, "");
+            if (!string.IsNullOrEmpty(lastSessionJson))
+            {
+                SessionData sessionData = JsonUtility.FromJson<SessionData>(lastSessionJson);
+                if (sessionData.Cols != 0)
+                {
+                    ScreensSwitcher.Instance.Open(GameConstants.ScreenMain);
+                }
+            }
+        }
+
         private void OnTouchScreen(PointerEventData obj)
         {
             ScreensSwitcher.Instance.Open(GameConstants.ScreenChoice, false);

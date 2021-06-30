@@ -4,11 +4,14 @@ using Puzzle15.Constants;
 using PuzzleGame.UI;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.UI;
 
 namespace Puzzle15.UI
 {
     public class MainScreen : BaseScreen
     {
+        [SerializeField] private Button _buttonBack;
+        
         [SerializeField] private TilesViewsDescriptionSO _tilesViewsDescription;
         [SerializeField] private TilesMappingSO _tilesMapping;
         [SerializeField] private GameFieldView _gameFieldViewPrefab;
@@ -18,6 +21,17 @@ namespace Puzzle15.UI
 
         #region life cycle
 
+        private void OnEnable()
+        {
+            _buttonBack.onClick.AddListener(OnButtonBack);
+        }
+
+        private void OnDisable()
+        {
+            _buttonBack.onClick.RemoveListener(OnButtonBack);
+
+        }
+        
         private void Start()
         {
             Assert.IsTrue(_tilesViewsDescription != null);
@@ -37,10 +51,10 @@ namespace Puzzle15.UI
             base.Show();
 
             string lastSessionJson = PlayerPrefs.GetString(GameConstants.PrefsLastSession, "");
-            if (lastSessionJson != "")
+            if (!string.IsNullOrEmpty(lastSessionJson))
             {
                 SessionData sessionData = JsonUtility.FromJson<SessionData>(lastSessionJson);
-                if (sessionData.Equals(SessionData.Null))
+                if (sessionData.Cols == 0)
                     CreateNewGameField(_tilesMapping);
                 else
                     LoadGameFromPreviousSession(sessionData);
@@ -54,7 +68,6 @@ namespace Puzzle15.UI
             ITilesMapping currentProvider = TilesSourceProvider.Instance.GetProvider(sessionData.TilesProviderId);
             Assert.IsTrue(currentProvider != null);
             
-            var orderedTilesContent = currentProvider.OrderedTilesContent;
             var orderedTiles = CreateTiles(sessionData.Type, sessionData.Cols * sessionData.Rows, currentProvider);
 
             CreateGameField(
@@ -75,10 +88,7 @@ namespace Puzzle15.UI
             sessionData.Type = TileType.Numbered; // todo: fix later
             sessionData.TilesProviderId = currentTilesSourceProviderId;
             sessionData.TilesIndices = GetTileIndices(_gameField.GetOrderedTileData(), _gameField.GetTilesData());
-
-            string json = JsonUtility.ToJson(sessionData);
-            PlayerPrefs.SetString(GameConstants.PrefsLastSession, json);
-            PlayerPrefs.Save();
+            sessionData.Save();
         }
 
         private int[] GetTileIndices(TileData[] orderedTiles, TileData[] tiles)
@@ -100,6 +110,17 @@ namespace Puzzle15.UI
             TileType tileType = (TileType)PlayerPrefs.GetInt(GameConstants.PrefsTileType, 0);
             TileData[] orderedTiles = CreateTiles(tileType, cols * rows, tilesMapping);
 
+            CreateGameField(cols, rows, tileType, orderedTiles);
+            
+            _gameField.Shuffle();
+        }
+
+        private void CreateGameField(int cols, int rows, TileType type, TileData[] orderedTiles, int[] customTilesOrder = null)
+        {
+            Assert.IsTrue(cols > 0);
+            Assert.IsTrue(rows > 0);
+            Assert.IsTrue(orderedTiles != null);
+            
             if (_gameField != null) 
                 _gameField = null;
             
@@ -108,23 +129,11 @@ namespace Puzzle15.UI
                 Destroy(_gameFieldView.gameObject);
                 _gameFieldView = null;
             }
-
-            CreateGameField(cols, rows, tileType, orderedTiles);
-            _gameField.Shuffle();
-            _gameField.EventPuzzleCompleted += OnPuzzleCompleted;
-        }
-
-        private void CreateGameField(int cols, int rows, TileType type, TileData[] orderedTiles, int[] customTilesOrder = null)
-        {
-            Assert.IsTrue(_gameField == null, "Can't create gamefield as it is already exits");
-            Assert.IsTrue(_gameFieldView == null);
-            Assert.IsTrue(cols > 0);
-            Assert.IsTrue(rows > 0);
-            Assert.IsTrue(orderedTiles != null);
             
             _gameField = new GameField(cols, rows, orderedTiles, customTilesOrder);
             _gameFieldView = Instantiate(_gameFieldViewPrefab);
             _gameFieldView.Setup(_gameField, _tilesViewsDescription.GetView(type));
+            _gameField.EventPuzzleCompleted += OnPuzzleCompleted;
         }
 
         private TileData[] CreateTiles(TileType type, int tilesCount, ITilesMapping tilesMapping)
@@ -189,6 +198,13 @@ namespace Puzzle15.UI
         {
             ScreensSwitcher.Instance.Open(GameConstants.ScreenWin);
         }
+        
+        private void OnButtonBack()
+        {
+            (new SessionData()).Save();
+            ScreensSwitcher.Instance.Back();
+        }
+
 
         #endregion
     }
